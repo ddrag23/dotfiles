@@ -26,6 +26,7 @@ Plug 'Yggdroot/indentLine'
 Plug 'KabbAmine/vCoolor.vim'
 Plug 'nathanaelkane/vim-indent-guides'
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
 Plug 'hail2u/vim-css3-syntax'
 Plug 'terryma/vim-multiple-cursors'
 call plug#end()
@@ -41,7 +42,7 @@ syntax on
 filetype plugin indent on
 
 " TODO: Pick a leader key
- let mapleader = ","
+let mapleader = ","
 
 " Security
 set modelines=0
@@ -66,14 +67,17 @@ set fileencodings=utf-8
 
 " Whitespace
 set wrap
-set textwidth=130
+set textwidth=80
 set formatoptions=tcqrn1
 set tabstop=2
 set shiftwidth=2
 set softtabstop=2
 set expandtab
 set noshiftround
-set autoindent
+
+"indentline
+set smartindent
+let g:indentLine_faster = 1
 
 " Cursor motion
 set scrolloff=3
@@ -118,41 +122,67 @@ inoremap <silent><expr> <TAB>
 inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
 
 function! s:check_back_space() abort
-    let col = col('.') - 1
-      return !col || getline('.')[col - 1]  =~# '\s'
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
 endfunction
 
 "------------------------------------------------------------------------------------------------------------------------
 " MAPPING KEY
 " -----------------------------------------------------------------------------------------------------------------------
-
-"commentary
+"commentary{
 noremap <Leader>/ :Commentary<CR>
-nmap <leader><tab> :FZF<cr>
-" Mapping selecting mappings
+" }
 
-"nerdtree map
+"Nerdtree Map{
 nmap <F12> :NERDTreeTabsToggle<CR>
-"move buffers
-nmap <leader>n :bn<cr>
-nmap <leader>p :bp<cr>
-nmap <leader>d :bd<cr>
- "cleanup all vim buffers, except the active one
-noremap <leader>qo :call buffer#DeleteOnly()<cr>
+nmap <Leader>x :NERDTreeFind<cr>
+" }
 
-" Move up/down editor lines
+"Buffers{
+noremap <Leader>n :bn<cr>
+noremap <Leader>p :bp<cr>
+noremap <Leader>ll :bl<cr>
+noremap <Leader>f :bf<cr>
+" close buffer
+ noremap <leader>q :bp<cr>:bd #<cr>
+" " cleanup all vim buffers
+ noremap <leader>qq :bufdo bd<cr>
+ noremap <leader>qa :bufdo bd!<cr>
+" " cleanup all vim buffers, except the active one.
+ noremap <leader>qo :call buffer#DeleteOnly()<cr>
+" }
+
+" Tabbed Key {
+nmap <Leader>t :tabedit $HOME/Project<cr> 
+nmap <Leader>tc :tabclose<cr>
+" }
+"
+" Move up/down editor lines {
 nnoremap j gj
 nnoremap k gk
+" }
+
+" Move Window {
+nmap <C-h> <C-w><C-h>
+nmap <C-j> <C-w><C-j>
+nmap <C-k> <C-w><C-k>
+nmap <C-l> <C-w><C-l>
+" }
 
 "" EasyAlign {{{
 vmap <leader>a :EasyAlign<cr>
 nmap <leader>a :EasyAlign<cr>
 " }}}
 
-"  serch map
+" Serch Map {
 nnoremap / /\v
 vnoremap / /\v
 map <leader><space> :let @/=''<cr> " clear search
+" }
+" Open .vimrc
+nmap <Leader>c :e $MYVIMRC<cr>
+" Reload .vimrc
+nmap <leader>r :source $MYVIMRC<cr>
 
 " Remap help key.
 inoremap <F1> <ESC>:set invfullscreen<CR>a
@@ -169,12 +199,35 @@ map <leader>q gqip
 " Or use your leader key + l to toggle on/off
 map <leader>l :set list!<CR> " Toggle tabs and EOL
 
+"" FZF {{{
+" nnoremap <leader><space> :History<cr>
+nnoremap <leader>b :Buffers<cr>
+nnoremap <leader>o :Files<cr>
+nnoremap <leader>g :BTags<cr>
+nnoremap <leader><leader> :Commands<cr>
+
+" Mapping selecting mappings
+ nmap <leader><tab> <plug>(fzf-maps-n)
+ xmap <leader><tab> <plug>(fzf-maps-x)
+ omap <leader><tab> <plug>(fzf-maps-o)
+
+" " Insert mode completion
+ imap <c-x><c-w> <plug>(fzf-complete-word)
+ imap <c-x><c-p> <plug>(fzf-complete-path)
+ imap <c-x><c-f> <plug>(fzf-complete-file-ag)
+ imap <c-x><c-l> <plug>(fzf-complete-line)
+"
+" " Advanced customization using autoload functions
+ inoremap <expr> <c-x><c-k> fzf#vim#complete#word({'left': '15%'})
+ autocmd! FileType fzf tnoremap <buffer> <esc> <c-c>
+" " }}}
+
 "--------------------------------------------------------------------------------------------------------------------------
 " FILETYPE
 "--------------------------------------------------------------------------------------------------------------------------
 
 " PHP 
-autocmd FileType php setlocal expandtab shiftwidth=2 softtabstop=2
+autocmd FileType php setlocal expandtab shiftwidth=4 softtabstop=4
 " HTML
 autocmd FileType html,jinja2.html setlocal expandtab shiftwidth=2 softtabstop=2
 " CSS
@@ -197,6 +250,8 @@ colorscheme nord
 let g:airline_powerline_fonts = 1
 let g:airline_section_b = '%{strftime("%c")}'
 let g:airline_section_y = 'BN: %{bufnr("%")}'
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#left_sep = ' '
 " lightline
 " let g:lightline = {'colorscheme': 'nord'}
 " highlighting try
@@ -212,4 +267,4 @@ let g:airline_section_y = 'BN: %{bufnr("%")}'
 " highlighting end
 " setting from plug
 " fzf
- command! -bang Project call fzf#vim#files('~/Project', <bang>0)
+command! -bang Project call fzf#vim#files('~/Project', <bang>0)
